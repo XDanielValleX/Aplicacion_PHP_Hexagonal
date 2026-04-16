@@ -18,17 +18,31 @@ final class UserName
         $value = trim($value);
 
         if ($value === '') {
-            throw new InvalidNameException('El nombre es obligatorio.');
+            throw InvalidNameException::becauseValueIsEmpty();
+        }
+
+        if (mb_strlen($value) < 3) {
+            throw InvalidNameException::becauseLengthIsTooShort(3);
         }
 
         if (mb_strlen($value) > 120) {
-            throw new InvalidNameException('El nombre es demasiado largo.');
+            throw InvalidNameException::becauseValueIsTooLong(120);
         }
 
         return new self($value);
     }
 
     public function value(): string
+    {
+        return $this->value;
+    }
+
+    public function equals(self $other): bool
+    {
+        return $this->value === $other->value;
+    }
+
+    public function __toString(): string
     {
         return $this->value;
     }

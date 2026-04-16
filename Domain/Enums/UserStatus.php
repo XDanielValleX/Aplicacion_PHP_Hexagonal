@@ -21,4 +21,27 @@ enum UserStatus: string
             default => throw new DomainException('Estado de usuario inválido.'),
         };
     }
+
+    /**
+     * @return list<string>
+     */
+    public static function values(): array
+    {
+        return array_map(static fn (self $s): string => $s->value, self::cases());
+    }
+
+    public static function isValid(string $value): bool
+    {
+        try {
+            self::fromString($value);
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    public static function ensureIsValid(string $value): void
+    {
+        self::fromString($value);
+    }
 }
