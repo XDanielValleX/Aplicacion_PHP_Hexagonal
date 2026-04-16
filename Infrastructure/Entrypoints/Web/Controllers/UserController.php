@@ -11,17 +11,14 @@ use App\Application\Ports\In\GetUserByIdUseCase;
 use App\Application\Ports\In\UpdateUserUseCase;
 use App\Application\Services\Dto\Queries\GetAllUsersQuery;
 use App\Application\Services\Dto\Queries\GetUserByIdQuery;
-use App\Domain\Exceptions\DomainException;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\CreateUserRequest;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\UpdateUserRequest;
+use App\Infrastructure\Entrypoints\Web\Controllers\Dto\UserResponse;
 use App\Infrastructure\Entrypoints\Web\Controllers\Mapper\UserWebMapper;
-use App\Infrastructure\Entrypoints\Web\Presentation\Flash;
-use App\Infrastructure\Entrypoints\Web\Presentation\View;
 
 final class UserController
 {
     public function __construct(
-        private readonly View $view,
         private readonly UserWebMapper $mapper,
         private readonly CreateUserUseCase $createUser,
         private readonly GetAllUsersUseCase $listUsers,
@@ -31,80 +28,42 @@ final class UserController
     ) {
     }
 
-    public function index(): void
+    /**
+     * @return UserResponse[]
+     */
+    public function index(): array
     {
         $users = $this->listUsers->execute(new GetAllUsersQuery());
-        $responses = $this->mapper->toResponseList($users);
 
-        $this->view->render('users/list', [
-            'users' => $responses,
-        ]);
-    }
-
-    public function create(): void
-    {
-        $this->view->render('users/create');
+        return $this->mapper->toResponseList($users);
     }
 
     public function store(CreateUserRequest $request): void
     {
-        try {
-            $this->createUser->execute($this->mapper->toCreateCommand($request));
-            Flash::success('Usuario creado correctamente.');
-            $this->view->redirect('users.index');
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-            $this->view->redirect('users.create');
-        }
+        $this->createUser->execute($this->mapper->toCreateCommand($request));
     }
 
-    public function show(int $id): void
+    public function show(int $id): UserResponse
     {
-        try {
-            $user = $this->getUserById->execute(new GetUserByIdQuery($id));
-            $this->view->render('users/show', [
-                'user' => $this->mapper->toResponse($user),
-            ]);
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-            $this->view->redirect('users.index');
-        }
+        $user = $this->getUserById->execute(new GetUserByIdQuery($id));
+
+        return $this->mapper->toResponse($user);
     }
 
-    public function edit(int $id): void
+    public function edit(int $id): UserResponse
     {
-        try {
-            $user = $this->getUserById->execute(new GetUserByIdQuery($id));
-            $this->view->render('users/edit', [
-                'user' => $this->mapper->toResponse($user),
-            ]);
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-            $this->view->redirect('users.index');
-        }
+        $user = $this->getUserById->execute(new GetUserByIdQuery($id));
+
+        return $this->mapper->toResponse($user);
     }
 
     public function update(UpdateUserRequest $request): void
     {
-        try {
-            $this->updateUser->execute($this->mapper->toUpdateCommand($request));
-            Flash::success('Usuario actualizado correctamente.');
-            $this->view->redirect('users.index');
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-            $this->view->redirect('users.edit', ['id' => $request->id]);
-        }
+        $this->updateUser->execute($this->mapper->toUpdateCommand($request));
     }
 
     public function destroy(int $id): void
     {
-        try {
-            $this->deleteUser->execute($this->mapper->toDeleteCommand($id));
-            Flash::success('Usuario eliminado.');
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-        }
-
-        $this->view->redirect('users.index');
+        $this->deleteUser->execute($this->mapper->toDeleteCommand($id));
     }
 }

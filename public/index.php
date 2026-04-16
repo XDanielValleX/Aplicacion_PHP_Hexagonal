@@ -2,37 +2,23 @@
 
 declare(strict_types=1);
 
-use App\Application\Services\CreateMenuRestauranteService;
-use App\Application\Services\CreateUserService;
-use App\Application\Services\DeleteMenuRestauranteService;
-use App\Application\Services\DeleteUserService;
-use App\Application\Services\ForgotPasswordService;
-use App\Application\Services\GetMenuRestauranteByIdService;
-use App\Application\Services\GetUserByIdService;
-use App\Application\Services\ListMenuRestaurantesService;
-use App\Application\Services\ListUsersService;
-use App\Application\Services\LoginService;
-use App\Application\Services\UpdateMenuRestauranteService;
-use App\Application\Services\UpdateUserService;
-use App\Infrastructure\Entrypoints\Web\Controllers\AuthController;
+use App\Common\ClassLoader;
+use App\Common\DependencyInjection;
+use App\Domain\Exceptions\DomainException;
 use App\Infrastructure\Entrypoints\Web\Controllers\Config\WebRoutes;
-use App\Infrastructure\Entrypoints\Web\Controllers\HomeController;
-use App\Infrastructure\Entrypoints\Web\Controllers\Mapper\MenuRestauranteWebMapper;
-use App\Infrastructure\Entrypoints\Web\Controllers\Mapper\UserWebMapper;
-use App\Infrastructure\Entrypoints\Web\Controllers\MenuRestauranteController;
-use App\Infrastructure\Entrypoints\Web\Controllers\UserController;
+use App\Infrastructure\Entrypoints\Web\Controllers\Dto\CreateMenuRestauranteRequest;
+use App\Infrastructure\Entrypoints\Web\Controllers\Dto\CreateUserRequest;
+use App\Infrastructure\Entrypoints\Web\Controllers\Dto\ForgotPasswordRequest;
+use App\Infrastructure\Entrypoints\Web\Controllers\Dto\LoginWebRequest;
+use App\Infrastructure\Entrypoints\Web\Controllers\Dto\UpdateMenuRestauranteRequest;
+use App\Infrastructure\Entrypoints\Web\Controllers\Dto\UpdateUserRequest;
 use App\Infrastructure\Entrypoints\Web\Presentation\Flash;
 use App\Infrastructure\Entrypoints\Web\Presentation\View;
-use App\Infrastructure\Adapters\Persistence\MySQL\Config\Connection;
-use App\Infrastructure\Adapters\Persistence\MySQL\Repository\MenuRestauranteRepositoryMySQL;
-use App\Infrastructure\Adapters\Persistence\MySQL\Repository\UserRepositoryMySQL;
 
-$vendorAutoload = __DIR__ . '/../vendor/autoload.php';
-if (is_file($vendorAutoload)) {
-    require $vendorAutoload;
-} else {
-    require __DIR__ . '/../bootstrap/autoload.php';
-}
+require_once __DIR__ . '/../Common/ClassLoader.php';
+ClassLoader::register(dirname(__DIR__));
+
+$projectRoot = dirname(__DIR__);
 
 $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
 ini_set('session.use_strict_mode', '1');
@@ -62,51 +48,21 @@ if ($requestPath !== $publicBase && !str_starts_with($requestPath, $publicBase .
 
 $view = new View(
     $publicBase,
-    __DIR__ . '/../Infrastructure/Entrypoints/Web/Presentation/views',
+    $projectRoot . '/Infrastructure/Entrypoints/Web/Presentation/views',
 );
 
 try {
-    /** @var array{host:string,port:int,database:string,username:string,password:string,charset:string} $dbConfig */
-    $dbConfig = require __DIR__ . '/../config/database.php';
-    $connection = new Connection($dbConfig);
-    $pdo = $connection->getConnection();
-    $userRepository = new UserRepositoryMySQL($pdo);
-    $menuRepository = new MenuRestauranteRepositoryMySQL($pdo);
-
-    $userController = new UserController(
-        $view,
-        new UserWebMapper(),
-        new CreateUserService($userRepository),
-        new ListUsersService($userRepository),
-        new GetUserByIdService($userRepository),
-        new UpdateUserService($userRepository),
-        new DeleteUserService($userRepository),
-    );
-
-    $authController = new AuthController(
-        $view,
-        new LoginService($userRepository),
-        new ForgotPasswordService($userRepository),
-    );
-
-    $menuRestauranteController = new MenuRestauranteController(
-        $view,
-        new MenuRestauranteWebMapper(),
-        new CreateMenuRestauranteService($menuRepository),
-        new ListMenuRestaurantesService($menuRepository),
-        new GetMenuRestauranteByIdService($menuRepository),
-        new UpdateMenuRestauranteService($menuRepository),
-        new DeleteMenuRestauranteService($menuRepository),
-    );
+    $container = DependencyInjection::build($projectRoot);
+    $userController = $container['userController'];
+    $authController = $container['authController'];
+    $menuRestauranteController = $container['menuRestauranteController'];
 } catch (Throwable $e) {
     http_response_code(500);
     $view->render('errors/500', ['message' => 'Configura MySQL y la tabla users (ver database/schema.sql).']);
     exit;
 }
 
-$homeController = new HomeController($view);
-
-$routes = WebRoutes::getRoutes($homeController, $userController, $authController, $menuRestauranteController);
+$routes = WebRoutes::getRoutes();
 
 $routeName = (string) ($_GET['route'] ?? 'home');
 $route = $routes[$routeName] ?? null;
@@ -141,7 +97,240 @@ if ($method === 'POST') {
 }
 
 try {
-    ($route['handler'])();
+    switch ($routeName) {
+        case 'home':
+            $view->render('home');
+            break;
+
+        case 'auth.login':
+            if (!empty($_SESSION['auth']['id'])) {
+                $view->redirect('home');
+            }
+
+            $view->render('auth/login');
+            break;
+
+        case 'auth.authenticate':
+            $request = LoginWebRequest::fromArray($_POST);
+
+            try {
+                $auth = $authController->authenticate($request);
+
+                session_regenerate_id(true);
+                $_SESSION['auth'] = $auth;
+
+                Flash::success('Bienvenido.');
+                $view->redirect('home');
+            } catch (DomainException $e) {
+                $old = $_POST;
+                unset($old['_csrf'], $old['password']);
+
+                Flash::setOld($old);
+                Flash::error($e->getMessage());
+                $view->redirect('auth.login');
+            }
+            break;
+
+        case 'auth.logout':
+            $_SESSION = [];
+            session_regenerate_id(true);
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+            Flash::success('Sesión cerrada.');
+            $view->redirect('auth.login');
+            break;
+
+        case 'auth.forgot':
+            if (!empty($_SESSION['auth']['id'])) {
+                $view->redirect('home');
+            }
+
+            $view->render('auth/forgot-password');
+            break;
+
+        case 'auth.send-reset':
+            $request = ForgotPasswordRequest::fromArray($_POST);
+            $authController->sendReset($request);
+
+            Flash::success('Si el correo existe, enviaremos instrucciones. En local: revisa storage/mails/.');
+            $view->redirect('auth.login');
+            break;
+
+        case 'users.index':
+            $users = $userController->index();
+            $view->render('users/list', [
+                'users' => $users,
+            ]);
+            break;
+
+        case 'users.create':
+            $view->render('users/create');
+            break;
+
+        case 'users.store':
+            $request = CreateUserRequest::fromArray($_POST);
+
+            try {
+                $userController->store($request);
+                Flash::success('Usuario creado correctamente.');
+                $view->redirect('users.index');
+            } catch (DomainException $e) {
+                $old = $_POST;
+                unset($old['_csrf'], $old['password']);
+
+                Flash::setOld($old);
+                Flash::error($e->getMessage());
+                $view->redirect('users.create');
+            }
+            break;
+
+        case 'users.show':
+            try {
+                $id = (int) ($_GET['id'] ?? 0);
+                $user = $userController->show($id);
+
+                $view->render('users/show', [
+                    'user' => $user,
+                ]);
+            } catch (DomainException $e) {
+                Flash::error($e->getMessage());
+                $view->redirect('users.index');
+            }
+            break;
+
+        case 'users.edit':
+            try {
+                $id = (int) ($_GET['id'] ?? 0);
+                $user = $userController->edit($id);
+
+                $view->render('users/edit', [
+                    'user' => $user,
+                ]);
+            } catch (DomainException $e) {
+                Flash::error($e->getMessage());
+                $view->redirect('users.index');
+            }
+            break;
+
+        case 'users.update':
+            $request = UpdateUserRequest::fromArray($_POST);
+
+            try {
+                $userController->update($request);
+                Flash::success('Usuario actualizado correctamente.');
+                $view->redirect('users.index');
+            } catch (DomainException $e) {
+                $old = $_POST;
+                unset($old['_csrf'], $old['password']);
+
+                Flash::setOld($old);
+                Flash::error($e->getMessage());
+                $view->redirect('users.edit', ['id' => $request->id]);
+            }
+            break;
+
+        case 'users.destroy':
+            try {
+                $id = (int) ($_POST['id'] ?? 0);
+                $userController->destroy($id);
+                Flash::success('Usuario eliminado.');
+            } catch (DomainException $e) {
+                Flash::error($e->getMessage());
+            }
+
+            $view->redirect('users.index');
+            break;
+
+        case 'menus.index':
+            $items = $menuRestauranteController->index();
+            $view->render('menus/list', [
+                'items' => $items,
+            ]);
+            break;
+
+        case 'menus.create':
+            $view->render('menus/create');
+            break;
+
+        case 'menus.store':
+            $request = CreateMenuRestauranteRequest::fromArray($_POST);
+
+            try {
+                $menuRestauranteController->store($request);
+                Flash::success('Registro creado correctamente.');
+                $view->redirect('menus.index');
+            } catch (DomainException $e) {
+                $old = $_POST;
+                unset($old['_csrf']);
+
+                Flash::setOld($old);
+                Flash::error($e->getMessage());
+                $view->redirect('menus.create');
+            }
+            break;
+
+        case 'menus.show':
+            try {
+                $id = (int) ($_GET['id'] ?? 0);
+                $item = $menuRestauranteController->show($id);
+
+                $view->render('menus/show', [
+                    'item' => $item,
+                ]);
+            } catch (DomainException $e) {
+                Flash::error($e->getMessage());
+                $view->redirect('menus.index');
+            }
+            break;
+
+        case 'menus.edit':
+            try {
+                $id = (int) ($_GET['id'] ?? 0);
+                $item = $menuRestauranteController->edit($id);
+
+                $view->render('menus/edit', [
+                    'item' => $item,
+                ]);
+            } catch (DomainException $e) {
+                Flash::error($e->getMessage());
+                $view->redirect('menus.index');
+            }
+            break;
+
+        case 'menus.update':
+            $request = UpdateMenuRestauranteRequest::fromArray($_POST);
+
+            try {
+                $menuRestauranteController->update($request);
+                Flash::success('Registro actualizado correctamente.');
+                $view->redirect('menus.index');
+            } catch (DomainException $e) {
+                $old = $_POST;
+                unset($old['_csrf']);
+
+                Flash::setOld($old);
+                Flash::error($e->getMessage());
+                $view->redirect('menus.edit', ['id' => $request->id]);
+            }
+            break;
+
+        case 'menus.destroy':
+            try {
+                $id = (int) ($_POST['id'] ?? 0);
+                $menuRestauranteController->destroy($id);
+                Flash::success('Registro eliminado.');
+            } catch (DomainException $e) {
+                Flash::error($e->getMessage());
+            }
+
+            $view->redirect('menus.index');
+            break;
+
+        default:
+            http_response_code(500);
+            $view->render('errors/500', ['message' => 'Ruta no implementada']);
+            break;
+    }
 } catch (Throwable $e) {
     http_response_code(500);
     $view->render('errors/500');

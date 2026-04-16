@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 spl_autoload_register(function (string $class): void {
     $prefixes = [
+        'App\\Common\\' => __DIR__ . '/../Common/',
         'App\\Domain\\' => __DIR__ . '/../Domain/',
         'App\\Application\\' => __DIR__ . '/../Application/',
         'App\\Infrastructure\\' => __DIR__ . '/../Infrastructure/',

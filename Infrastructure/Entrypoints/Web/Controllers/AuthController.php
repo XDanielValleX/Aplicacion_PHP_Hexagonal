@@ -8,77 +8,36 @@ use App\Application\Ports\In\ForgotPasswordUseCase;
 use App\Application\Ports\In\LoginUseCase;
 use App\Application\Services\Dto\Commands\ForgotPasswordCommand;
 use App\Application\Services\Dto\Commands\LoginCommand;
-use App\Domain\Exceptions\DomainException;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\ForgotPasswordRequest;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\LoginWebRequest;
-use App\Infrastructure\Entrypoints\Web\Presentation\Flash;
-use App\Infrastructure\Entrypoints\Web\Presentation\View;
 use Throwable;
 
 final class AuthController
 {
     public function __construct(
-        private readonly View $view,
         private readonly LoginUseCase $login,
         private readonly ForgotPasswordUseCase $forgotPassword,
     ) {
     }
 
-    public function loginForm(): void
+    /**
+     * @return array{id:int,name:string,email:string,role:int}
+     */
+    public function authenticate(LoginWebRequest $request): array
     {
-        if (!empty($_SESSION['auth']['id'])) {
-            $this->view->redirect('home');
-        }
+        $user = $this->login->execute(new LoginCommand($request->email, $request->password));
 
-        $this->view->render('auth/login');
-    }
-
-    public function authenticate(LoginWebRequest $request): void
-    {
-        try {
-            $user = $this->login->execute(new LoginCommand($request->email, $request->password));
-
-            session_regenerate_id(true);
-            $_SESSION['auth'] = [
-                'id' => $user->id()?->value() ?? 0,
-                'name' => $user->name()->value(),
-                'email' => $user->email()->value(),
-                'role' => $user->roleId()->value(),
-            ];
-
-            Flash::success('Bienvenido.');
-            $this->view->redirect('home');
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-            $this->view->redirect('auth.login');
-        }
-    }
-
-    public function logout(): void
-    {
-        $_SESSION = [];
-
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
-        }
-
-        session_destroy();
-
-        // Start a fresh session so flash messaging still works after logout.
-        session_start();
-        Flash::success('Sesión cerrada.');
-        $this->view->redirect('auth.login');
-    }
-
-    public function forgotPasswordForm(): void
-    {
-        $this->view->render('auth/forgot-password');
+        return [
+            'id' => $user->id()?->value() ?? 0,
+            'name' => $user->name()->value(),
+            'email' => $user->email()->value(),
+            'role' => $user->roleId()->value(),
+        ];
     }
 
     public function sendReset(ForgotPasswordRequest $request): void
     {
-        // Always show the same message (avoid user enumeration)
+        // Always behave the same way (avoid user enumeration)
         try {
             $result = $this->forgotPassword->execute(new ForgotPasswordCommand($request->email));
 
@@ -98,9 +57,6 @@ final class AuthController
         } catch (Throwable $e) {
             // Intentionally ignored.
         }
-
-        Flash::success('Si el correo existe, enviaremos instrucciones. En local: revisa storage/mails/.');
-        $this->view->redirect('auth.login');
     }
 
     private function renderForgotPasswordEmail(string $name, string $tempPassword): string

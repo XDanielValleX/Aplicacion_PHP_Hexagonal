@@ -1,5 +1,6 @@
 <?php
 /** @var string $basePath */
+/** @var array<string, mixed> $old */
 ?>
 <h1>Recuperar contraseña</h1>
 
@@ -8,7 +9,7 @@
 
     <p>
         <label>Email</label><br>
-        <input name="email" type="email" required>
+        <input name="email" type="email" required value="<?= htmlspecialchars((string) ($old['email'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
     </p>
 
     <p>

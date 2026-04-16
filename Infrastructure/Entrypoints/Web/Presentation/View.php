@@ -31,6 +31,8 @@ final class View
             'auth' => $_SESSION['auth'] ?? null,
             'csrfToken' => $_SESSION['csrf_token'] ?? '',
             'flash' => Flash::consume(),
+            'old' => Flash::consumeOld(),
+            'errors' => Flash::consumeErrors(),
         ], $data);
 
         extract($data, EXTR_SKIP);
