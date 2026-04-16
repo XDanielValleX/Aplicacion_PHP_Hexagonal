@@ -16,33 +16,10 @@ final class UpdateUserCommand
     ) {
     }
 
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    public function getPassword(): ?string
-    {
-        return $this->password;
-    }
-
-    public function getRoleId(): int
-    {
-        return $this->roleId;
-    }
-
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
+    public function getId(): int { return $this->id; }
+    public function getName(): string { return $this->name; }
+    public function getEmail(): string { return $this->email; }
+    public function getPassword(): ?string { return $this->password; }
+    public function getRoleId(): int { return $this->roleId; }
+    public function getStatus(): string { return $this->status; }
 }
