@@ -24,21 +24,21 @@ final class UpdateUserService implements UpdateUserUseCase
 
     public function execute(UpdateUserCommand $command): UserModel
     {
-        $userId = UserId::fromInt($command->getId());
+        $userId = UserId::fromInt($command->id);
 
         $currentUser = $this->users->findById($userId);
         if ($currentUser === null) {
             throw UserNotFoundException::becauseIdWasNotFound();
         }
 
-        $newEmail = UserEmail::fromString($command->getEmail());
+        $newEmail = UserEmail::fromString($command->email);
 
         $userWithSameEmail = $this->users->findByEmail($newEmail);
         if ($userWithSameEmail !== null && $userWithSameEmail->id() !== null && !$userWithSameEmail->id()->equals($userId)) {
             throw UserAlreadyExistsException::becauseEmailAlreadyExists();
         }
 
-        $passwordValue = $command->getPassword();
+        $passwordValue = $command->password;
         $password = ($passwordValue !== null && trim($passwordValue) !== '')
             ? UserPassword::fromPlainText($passwordValue)
             : $currentUser->password();

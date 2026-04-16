@@ -13,9 +13,4 @@ final class CreateUserCommand
         public readonly int $roleId = 1,
     ) {
     }
-
-    public function getName(): string { return $this->name; }
-    public function getEmail(): string { return $this->email; }
-    public function getPassword(): string { return $this->password; }
-    public function getRoleId(): int { return $this->roleId; }
 }

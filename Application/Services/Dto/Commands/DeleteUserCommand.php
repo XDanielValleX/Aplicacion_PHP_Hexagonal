@@ -10,6 +10,4 @@ final class DeleteUserCommand
         public readonly int $id,
     ) {
     }
-
-    public function getId(): int { return $this->id; }
 }

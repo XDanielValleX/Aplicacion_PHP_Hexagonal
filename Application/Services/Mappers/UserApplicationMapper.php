@@ -22,10 +22,10 @@ final class UserApplicationMapper
     {
         return new UserModel(
             null,
-            UserName::fromString($command->getName()),
+            UserName::fromString($command->name),
             $email,
-            UserPassword::fromPlainText($command->getPassword()),
-            UserRoleId::fromInt($command->getRoleId()),
+            UserPassword::fromPlainText($command->password),
+            UserRoleId::fromInt($command->roleId),
             UserStatus::ACTIVE,
         );
     }
@@ -36,12 +36,12 @@ final class UserApplicationMapper
         UserPassword $password,
     ): UserModel {
         return new UserModel(
-            UserId::fromInt($command->getId()),
-            UserName::fromString($command->getName()),
+            UserId::fromInt($command->id),
+            UserName::fromString($command->name),
             $email,
             $password,
-            UserRoleId::fromInt($command->getRoleId()),
-            UserStatus::fromString($command->getStatus()),
+            UserRoleId::fromInt($command->roleId),
+            UserStatus::fromString($command->status),
         );
     }
 
@@ -52,6 +52,6 @@ final class UserApplicationMapper
 
     public static function fromDeleteCommandToUserId(DeleteUserCommand $command): UserId
     {
-        return UserId::fromInt($command->getId());
+        return UserId::fromInt($command->id);
     }
 }
