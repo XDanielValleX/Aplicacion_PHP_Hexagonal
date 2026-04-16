@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Application\Commands\CreateUserCommand;
+use App\Application\Ports\In\CreateUserUseCase;
 use App\Application\Ports\Out\UserRepositoryPort;
-use App\Domain\Enums\UserStatus;
+use App\Application\Services\Dto\Commands\CreateUserCommand;
+use App\Application\Services\Mappers\UserApplicationMapper;
 use App\Domain\Exceptions\UserAlreadyExistsException;
 use App\Domain\Models\UserModel;
 use App\Domain\ValueObjects\UserEmail;
-use App\Domain\ValueObjects\UserName;
-use App\Domain\ValueObjects\UserPassword;
-use App\Domain\ValueObjects\UserRoleId;
 
-final class CreateUserService
+final class CreateUserService implements CreateUserUseCase
 {
     public function __construct(
         private readonly UserRepositoryPort $users,
@@ -23,20 +21,13 @@ final class CreateUserService
 
     public function execute(CreateUserCommand $command): UserModel
     {
-        $email = UserEmail::fromString($command->email);
+        $email = UserEmail::fromString($command->getEmail());
 
         if ($this->users->findByEmail($email) !== null) {
-            throw new UserAlreadyExistsException('El email ya está registrado.');
+            throw UserAlreadyExistsException::becauseEmailAlreadyExists();
         }
 
-        $user = new UserModel(
-            null,
-            UserName::fromString($command->name),
-            $email,
-            UserPassword::fromPlainText($command->password),
-            UserRoleId::fromInt($command->roleId),
-            UserStatus::ACTIVE,
-        );
+        $user = UserApplicationMapper::fromCreateCommandToModel($command, $email);
 
         return $this->users->save($user);
     }

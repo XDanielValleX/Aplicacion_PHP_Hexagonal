@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Entrypoints\Web\Controllers\Mapper;
 
-use App\Application\Commands\CreateUserCommand;
-use App\Application\Commands\DeleteUserCommand;
-use App\Application\Commands\UpdateUserCommand;
+use App\Application\Services\Dto\Commands\CreateUserCommand;
+use App\Application\Services\Dto\Commands\DeleteUserCommand;
+use App\Application\Services\Dto\Commands\UpdateUserCommand;
 use App\Domain\Models\UserModel;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\CreateUserRequest;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\UpdateUserRequest;

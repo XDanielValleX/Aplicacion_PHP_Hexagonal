@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use App\Application\Ports\In\GetAllUsersUseCase;
 use App\Application\Ports\Out\UserRepositoryPort;
+use App\Application\Services\Dto\Queries\GetAllUsersQuery;
 use App\Domain\Models\UserModel;
 
-final class ListUsersService
+final class ListUsersService implements GetAllUsersUseCase
 {
     public function __construct(
         private readonly UserRepositoryPort $users,
@@ -17,7 +19,7 @@ final class ListUsersService
     /**
      * @return UserModel[]
      */
-    public function execute(): array
+    public function execute(GetAllUsersQuery $query): array
     {
         return $this->users->listAll();
     }
