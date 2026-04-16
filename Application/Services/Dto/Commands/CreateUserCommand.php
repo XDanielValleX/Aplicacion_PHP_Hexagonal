@@ -6,17 +6,12 @@ namespace App\Application\Services\Dto\Commands;
 
 final class CreateUserCommand
 {
-    private string $name;
-    private string $email;
-    private string $password;
-    private int $roleId;
-
-    public function __construct(string $name, string $email, string $password, int $roleId = 1)
-    {
-        $this->name = trim($name);
-        $this->email = trim($email);
-        $this->password = $password;
-        $this->roleId = $roleId;
+    public function __construct(
+        public readonly string $name,
+        public readonly string $email,
+        public readonly string $password,
+        public readonly int $roleId = 1,
+    ) {
     }
 
     public function getName(): string

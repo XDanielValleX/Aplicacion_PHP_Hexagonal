@@ -6,21 +6,14 @@ namespace App\Application\Services\Dto\Commands;
 
 final class UpdateUserCommand
 {
-    private int $id;
-    private string $name;
-    private string $email;
-    private ?string $password;
-    private int $roleId;
-    private string $status;
-
-    public function __construct(int $id, string $name, string $email, ?string $password, int $roleId, string $status)
-    {
-        $this->id = $id;
-        $this->name = trim($name);
-        $this->email = trim($email);
-        $this->password = $password;
-        $this->roleId = $roleId;
-        $this->status = trim($status);
+    public function __construct(
+        public readonly int $id,
+        public readonly string $name,
+        public readonly string $email,
+        public readonly ?string $password,
+        public readonly int $roleId,
+        public readonly string $status,
+    ) {
     }
 
     public function getId(): int

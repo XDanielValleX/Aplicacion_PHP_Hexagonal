@@ -6,11 +6,9 @@ namespace App\Application\Services\Dto\Commands;
 
 final class DeleteUserCommand
 {
-    private int $id;
-
-    public function __construct(int $id)
-    {
-        $this->id = $id;
+    public function __construct(
+        public readonly int $id,
+    ) {
     }
 
     public function getId(): int
