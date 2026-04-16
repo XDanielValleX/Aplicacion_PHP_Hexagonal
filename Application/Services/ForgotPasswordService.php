@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Application\Commands\ForgotPasswordCommand;
+use App\Application\Ports\In\ForgotPasswordUseCase;
 use App\Application\Ports\Out\UserRepositoryPort;
+use App\Application\Services\Dto\Commands\ForgotPasswordCommand;
 use App\Domain\Models\UserModel;
 use App\Domain\ValueObjects\UserEmail;
 use App\Domain\ValueObjects\UserPassword;
 
-final class ForgotPasswordService
+final class ForgotPasswordService implements ForgotPasswordUseCase
 {
     public function __construct(
         private readonly UserRepositoryPort $users,
