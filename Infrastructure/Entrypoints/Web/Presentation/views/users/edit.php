@@ -1,6 +1,12 @@
 <?php
 /** @var string $basePath */
+/** @var array<string, mixed> $old */
 /** @var App\Infrastructure\Entrypoints\Web\Controllers\Dto\UserResponse $user */
+
+$name = (string) ($old['name'] ?? $user->name);
+$email = (string) ($old['email'] ?? $user->email);
+$roleId = (string) ($old['role_id'] ?? (string) $user->roleId);
+$status = (string) ($old['status'] ?? $user->status);
 ?>
 <h1>Editar usuario</h1>
 
@@ -10,12 +16,12 @@
 
     <p>
         <label>Nombre</label><br>
-        <input name="name" required value="<?= htmlspecialchars($user->name, ENT_QUOTES, 'UTF-8') ?>">
+        <input name="name" required value="<?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8') ?>">
     </p>
 
     <p>
         <label>Email</label><br>
-        <input name="email" type="email" required value="<?= htmlspecialchars($user->email, ENT_QUOTES, 'UTF-8') ?>">
+        <input name="email" type="email" required value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?>">
     </p>
 
     <p>
@@ -25,14 +31,14 @@
 
     <p>
         <label>Rol (id)</label><br>
-        <input name="role_id" type="number" min="1" required value="<?= (int) $user->roleId ?>">
+        <input name="role_id" type="number" min="1" required value="<?= htmlspecialchars($roleId, ENT_QUOTES, 'UTF-8') ?>">
     </p>
 
     <p>
         <label>Estado</label><br>
         <select name="status" required>
-            <option value="ACTIVE" <?= $user->status === 'ACTIVE' ? 'selected' : '' ?>>ACTIVE</option>
-            <option value="INACTIVE" <?= $user->status === 'INACTIVE' ? 'selected' : '' ?>>INACTIVE</option>
+            <option value="ACTIVE" <?= $status === 'ACTIVE' ? 'selected' : '' ?>>ACTIVE</option>
+            <option value="INACTIVE" <?= $status === 'INACTIVE' ? 'selected' : '' ?>>INACTIVE</option>
         </select>
     </p>
 

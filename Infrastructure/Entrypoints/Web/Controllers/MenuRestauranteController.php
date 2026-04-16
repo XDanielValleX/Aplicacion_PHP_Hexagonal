@@ -11,17 +11,14 @@ use App\Application\Ports\In\GetMenuRestauranteByIdUseCase;
 use App\Application\Ports\In\UpdateMenuRestauranteUseCase;
 use App\Application\Services\Dto\Queries\GetAllMenuRestaurantesQuery;
 use App\Application\Services\Dto\Queries\GetMenuRestauranteByIdQuery;
-use App\Domain\Exceptions\DomainException;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\CreateMenuRestauranteRequest;
+use App\Infrastructure\Entrypoints\Web\Controllers\Dto\MenuRestauranteResponse;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\UpdateMenuRestauranteRequest;
 use App\Infrastructure\Entrypoints\Web\Controllers\Mapper\MenuRestauranteWebMapper;
-use App\Infrastructure\Entrypoints\Web\Presentation\Flash;
-use App\Infrastructure\Entrypoints\Web\Presentation\View;
 
 final class MenuRestauranteController
 {
     public function __construct(
-        private readonly View $view,
         private readonly MenuRestauranteWebMapper $mapper,
         private readonly CreateMenuRestauranteUseCase $create,
         private readonly GetAllMenuRestaurantesUseCase $list,
@@ -31,80 +28,42 @@ final class MenuRestauranteController
     ) {
     }
 
-    public function index(): void
+    /**
+     * @return MenuRestauranteResponse[]
+     */
+    public function index(): array
     {
         $items = $this->list->execute(new GetAllMenuRestaurantesQuery());
-        $responses = $this->mapper->toResponseList($items);
 
-        $this->view->render('menus/list', [
-            'items' => $responses,
-        ]);
-    }
-
-    public function create(): void
-    {
-        $this->view->render('menus/create');
+        return $this->mapper->toResponseList($items);
     }
 
     public function store(CreateMenuRestauranteRequest $request): void
     {
-        try {
-            $this->create->execute($this->mapper->toCreateCommand($request));
-            Flash::success('Registro creado correctamente.');
-            $this->view->redirect('menus.index');
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-            $this->view->redirect('menus.create');
-        }
+        $this->create->execute($this->mapper->toCreateCommand($request));
     }
 
-    public function show(int $id): void
+    public function show(int $id): MenuRestauranteResponse
     {
-        try {
-            $item = $this->getById->execute(new GetMenuRestauranteByIdQuery($id));
-            $this->view->render('menus/show', [
-                'item' => $this->mapper->toResponse($item),
-            ]);
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-            $this->view->redirect('menus.index');
-        }
+        $item = $this->getById->execute(new GetMenuRestauranteByIdQuery($id));
+
+        return $this->mapper->toResponse($item);
     }
 
-    public function edit(int $id): void
+    public function edit(int $id): MenuRestauranteResponse
     {
-        try {
-            $item = $this->getById->execute(new GetMenuRestauranteByIdQuery($id));
-            $this->view->render('menus/edit', [
-                'item' => $this->mapper->toResponse($item),
-            ]);
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-            $this->view->redirect('menus.index');
-        }
+        $item = $this->getById->execute(new GetMenuRestauranteByIdQuery($id));
+
+        return $this->mapper->toResponse($item);
     }
 
     public function update(UpdateMenuRestauranteRequest $request): void
     {
-        try {
-            $this->update->execute($this->mapper->toUpdateCommand($request));
-            Flash::success('Registro actualizado correctamente.');
-            $this->view->redirect('menus.index');
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-            $this->view->redirect('menus.edit', ['id' => $request->id]);
-        }
+        $this->update->execute($this->mapper->toUpdateCommand($request));
     }
 
     public function destroy(int $id): void
     {
-        try {
-            $this->delete->execute($this->mapper->toDeleteCommand($id));
-            Flash::success('Registro eliminado.');
-        } catch (DomainException $e) {
-            Flash::error($e->getMessage());
-        }
-
-        $this->view->redirect('menus.index');
+        $this->delete->execute($this->mapper->toDeleteCommand($id));
     }
 }

@@ -6,6 +6,7 @@
   },
   "autoload": {
     "psr-4": {
+      "App\\Common\\": "Common/",
       "App\\Domain\\": "Domain/",
       "App\\Application\\": "Application/",
       "App\\Infrastructure\\": "Infrastructure/"
