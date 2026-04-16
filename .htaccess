@@ -1,0 +1,9 @@
+Options -Indexes
+
+RewriteEngine On
+
+# Allow direct access to /public
+RewriteRule ^public/ - [L]
+
+# Everything else goes to the front controller
+RewriteRule ^ public/index.php [L]
