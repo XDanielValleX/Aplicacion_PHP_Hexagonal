@@ -21,10 +21,6 @@ final class UserName
             throw InvalidNameException::becauseValueIsEmpty();
         }
 
-        if (mb_strlen($value) < 3) {
-            throw InvalidNameException::becauseLengthIsTooShort(3);
-        }
-
         if (mb_strlen($value) > 120) {
             throw InvalidNameException::becauseValueIsTooLong(120);
         }
