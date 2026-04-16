@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Application\Commands\DeleteUserCommand;
+use App\Application\Ports\In\DeleteUserUseCase;
 use App\Application\Ports\Out\UserRepositoryPort;
-use App\Domain\ValueObjects\UserId;
+use App\Application\Services\Dto\Commands\DeleteUserCommand;
+use App\Application\Services\Mappers\UserApplicationMapper;
+use App\Domain\Exceptions\UserNotFoundException;
 
-final class DeleteUserService
+final class DeleteUserService implements DeleteUserUseCase
 {
     public function __construct(
         private readonly UserRepositoryPort $users,
@@ -17,6 +19,13 @@ final class DeleteUserService
 
     public function execute(DeleteUserCommand $command): void
     {
-        $this->users->delete(UserId::fromInt($command->id));
+        $userId = UserApplicationMapper::fromDeleteCommandToUserId($command);
+
+        $existingUser = $this->users->findById($userId);
+        if ($existingUser === null) {
+            throw UserNotFoundException::becauseIdWasNotFound();
+        }
+
+        $this->users->delete($userId);
     }
 }

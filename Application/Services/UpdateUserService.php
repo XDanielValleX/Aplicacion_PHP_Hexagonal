@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Application\Commands\UpdateUserCommand;
+use App\Application\Ports\In\UpdateUserUseCase;
 use App\Application\Ports\Out\UserRepositoryPort;
-use App\Domain\Enums\UserStatus;
+use App\Application\Services\Dto\Commands\UpdateUserCommand;
+use App\Application\Services\Mappers\UserApplicationMapper;
 use App\Domain\Exceptions\UserAlreadyExistsException;
 use App\Domain\Exceptions\UserNotFoundException;
 use App\Domain\Models\UserModel;
 use App\Domain\ValueObjects\UserEmail;
 use App\Domain\ValueObjects\UserId;
-use App\Domain\ValueObjects\UserName;
 use App\Domain\ValueObjects\UserPassword;
-use App\Domain\ValueObjects\UserRoleId;
 
-final class UpdateUserService
+final class UpdateUserService implements UpdateUserUseCase
 {
     public function __construct(
         private readonly UserRepositoryPort $users,
@@ -25,33 +24,27 @@ final class UpdateUserService
 
     public function execute(UpdateUserCommand $command): UserModel
     {
-        $id = UserId::fromInt($command->id);
+        $userId = UserId::fromInt($command->id);
 
-        $existing = $this->users->findById($id);
-        if ($existing === null) {
-            throw new UserNotFoundException('Usuario no encontrado.');
+        $currentUser = $this->users->findById($userId);
+        if ($currentUser === null) {
+            throw UserNotFoundException::becauseIdWasNotFound();
         }
 
-        $email = UserEmail::fromString($command->email);
+        $newEmail = UserEmail::fromString($command->email);
 
-        $existingByEmail = $this->users->findByEmail($email);
-        if ($existingByEmail !== null && $existingByEmail->id() !== null && !$existingByEmail->id()->equals($id)) {
-            throw new UserAlreadyExistsException('El email ya está registrado.');
+        $userWithSameEmail = $this->users->findByEmail($newEmail);
+        if ($userWithSameEmail !== null && $userWithSameEmail->id() !== null && !$userWithSameEmail->id()->equals($userId)) {
+            throw UserAlreadyExistsException::becauseEmailAlreadyExists();
         }
 
-        $password = null;
-        if ($command->password !== null && trim($command->password) !== '') {
-            $password = UserPassword::fromPlainText($command->password);
-        }
+        $passwordValue = $command->password;
+        $password = ($passwordValue !== null && trim($passwordValue) !== '')
+            ? UserPassword::fromPlainText($passwordValue)
+            : $currentUser->password();
 
-        $updated = $existing->updateProfile(
-            UserName::fromString($command->name),
-            $email,
-            UserRoleId::fromInt($command->roleId),
-            UserStatus::fromString($command->status),
-            $password,
-        );
+        $userToUpdate = UserApplicationMapper::fromUpdateCommandToModel($command, $newEmail, $password);
 
-        return $this->users->update($updated);
+        return $this->users->update($userToUpdate);
     }
 }

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Entrypoints\Web\Controllers;
 
-use App\Application\Services\CreateUserService;
-use App\Application\Services\DeleteUserService;
-use App\Application\Services\GetUserByIdService;
-use App\Application\Services\ListUsersService;
-use App\Application\Services\UpdateUserService;
+use App\Application\Ports\In\CreateUserUseCase;
+use App\Application\Ports\In\DeleteUserUseCase;
+use App\Application\Ports\In\GetAllUsersUseCase;
+use App\Application\Ports\In\GetUserByIdUseCase;
+use App\Application\Ports\In\UpdateUserUseCase;
+use App\Application\Services\Dto\Queries\GetAllUsersQuery;
+use App\Application\Services\Dto\Queries\GetUserByIdQuery;
 use App\Domain\Exceptions\DomainException;
-use App\Domain\ValueObjects\UserId;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\CreateUserRequest;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\UpdateUserRequest;
 use App\Infrastructure\Entrypoints\Web\Controllers\Mapper\UserWebMapper;
@@ -22,17 +23,17 @@ final class UserController
     public function __construct(
         private readonly View $view,
         private readonly UserWebMapper $mapper,
-        private readonly CreateUserService $createUser,
-        private readonly ListUsersService $listUsers,
-        private readonly GetUserByIdService $getUserById,
-        private readonly UpdateUserService $updateUser,
-        private readonly DeleteUserService $deleteUser,
+        private readonly CreateUserUseCase $createUser,
+        private readonly GetAllUsersUseCase $listUsers,
+        private readonly GetUserByIdUseCase $getUserById,
+        private readonly UpdateUserUseCase $updateUser,
+        private readonly DeleteUserUseCase $deleteUser,
     ) {
     }
 
     public function index(): void
     {
-        $users = $this->listUsers->execute();
+        $users = $this->listUsers->execute(new GetAllUsersQuery());
         $responses = $this->mapper->toResponseList($users);
 
         $this->view->render('users/list', [
@@ -60,7 +61,7 @@ final class UserController
     public function show(int $id): void
     {
         try {
-            $user = $this->getUserById->execute(UserId::fromInt($id));
+            $user = $this->getUserById->execute(new GetUserByIdQuery($id));
             $this->view->render('users/show', [
                 'user' => $this->mapper->toResponse($user),
             ]);
@@ -73,7 +74,7 @@ final class UserController
     public function edit(int $id): void
     {
         try {
-            $user = $this->getUserById->execute(UserId::fromInt($id));
+            $user = $this->getUserById->execute(new GetUserByIdQuery($id));
             $this->view->render('users/edit', [
                 'user' => $this->mapper->toResponse($user),
             ]);
