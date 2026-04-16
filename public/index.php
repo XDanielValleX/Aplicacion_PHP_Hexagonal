@@ -23,9 +23,9 @@ use App\Infrastructure\Entrypoints\Web\Controllers\MenuRestauranteController;
 use App\Infrastructure\Entrypoints\Web\Controllers\UserController;
 use App\Infrastructure\Entrypoints\Web\Presentation\Flash;
 use App\Infrastructure\Entrypoints\Web\Presentation\View;
-use App\Infrastructure\Persistence\MySQL\MenuRestauranteRepositoryMySQL;
-use App\Infrastructure\Persistence\MySQL\PdoConnectionFactory;
-use App\Infrastructure\Persistence\MySQL\UserRepositoryMySQL;
+use App\Infrastructure\Adapters\Persistence\MySQL\Config\Connection;
+use App\Infrastructure\Adapters\Persistence\MySQL\Repository\MenuRestauranteRepositoryMySQL;
+use App\Infrastructure\Adapters\Persistence\MySQL\Repository\UserRepositoryMySQL;
 
 $vendorAutoload = __DIR__ . '/../vendor/autoload.php';
 if (is_file($vendorAutoload)) {
@@ -68,7 +68,8 @@ $view = new View(
 try {
     /** @var array{host:string,port:int,database:string,username:string,password:string,charset:string} $dbConfig */
     $dbConfig = require __DIR__ . '/../config/database.php';
-    $pdo = PdoConnectionFactory::create($dbConfig);
+    $connection = new Connection($dbConfig);
+    $pdo = $connection->getConnection();
     $userRepository = new UserRepositoryMySQL($pdo);
     $menuRepository = new MenuRestauranteRepositoryMySQL($pdo);
 
