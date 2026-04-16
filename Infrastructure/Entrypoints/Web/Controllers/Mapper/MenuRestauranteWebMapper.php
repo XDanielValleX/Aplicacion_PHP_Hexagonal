@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Entrypoints\Web\Controllers\Mapper;
 
-use App\Application\Commands\CreateMenuRestauranteCommand;
-use App\Application\Commands\DeleteMenuRestauranteCommand;
-use App\Application\Commands\UpdateMenuRestauranteCommand;
+use App\Application\Services\Dto\Commands\CreateMenuRestauranteCommand;
+use App\Application\Services\Dto\Commands\DeleteMenuRestauranteCommand;
+use App\Application\Services\Dto\Commands\UpdateMenuRestauranteCommand;
 use App\Domain\Models\MenuRestauranteModel;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\CreateMenuRestauranteRequest;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\MenuRestauranteResponse;
