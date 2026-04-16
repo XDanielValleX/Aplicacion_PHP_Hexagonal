@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Entrypoints\Web\Controllers;
 
-use App\Application\Services\CreateMenuRestauranteService;
-use App\Application\Services\DeleteMenuRestauranteService;
-use App\Application\Services\GetMenuRestauranteByIdService;
-use App\Application\Services\ListMenuRestaurantesService;
-use App\Application\Services\UpdateMenuRestauranteService;
+use App\Application\Ports\In\CreateMenuRestauranteUseCase;
+use App\Application\Ports\In\DeleteMenuRestauranteUseCase;
+use App\Application\Ports\In\GetAllMenuRestaurantesUseCase;
+use App\Application\Ports\In\GetMenuRestauranteByIdUseCase;
+use App\Application\Ports\In\UpdateMenuRestauranteUseCase;
+use App\Application\Services\Dto\Queries\GetAllMenuRestaurantesQuery;
+use App\Application\Services\Dto\Queries\GetMenuRestauranteByIdQuery;
 use App\Domain\Exceptions\DomainException;
-use App\Domain\ValueObjects\MenuRestauranteId;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\CreateMenuRestauranteRequest;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\UpdateMenuRestauranteRequest;
 use App\Infrastructure\Entrypoints\Web\Controllers\Mapper\MenuRestauranteWebMapper;
@@ -22,17 +23,17 @@ final class MenuRestauranteController
     public function __construct(
         private readonly View $view,
         private readonly MenuRestauranteWebMapper $mapper,
-        private readonly CreateMenuRestauranteService $create,
-        private readonly ListMenuRestaurantesService $list,
-        private readonly GetMenuRestauranteByIdService $getById,
-        private readonly UpdateMenuRestauranteService $update,
-        private readonly DeleteMenuRestauranteService $delete,
+        private readonly CreateMenuRestauranteUseCase $create,
+        private readonly GetAllMenuRestaurantesUseCase $list,
+        private readonly GetMenuRestauranteByIdUseCase $getById,
+        private readonly UpdateMenuRestauranteUseCase $update,
+        private readonly DeleteMenuRestauranteUseCase $delete,
     ) {
     }
 
     public function index(): void
     {
-        $items = $this->list->execute();
+        $items = $this->list->execute(new GetAllMenuRestaurantesQuery());
         $responses = $this->mapper->toResponseList($items);
 
         $this->view->render('menus/list', [
@@ -60,7 +61,7 @@ final class MenuRestauranteController
     public function show(int $id): void
     {
         try {
-            $item = $this->getById->execute(MenuRestauranteId::fromInt($id));
+            $item = $this->getById->execute(new GetMenuRestauranteByIdQuery($id));
             $this->view->render('menus/show', [
                 'item' => $this->mapper->toResponse($item),
             ]);
@@ -73,7 +74,7 @@ final class MenuRestauranteController
     public function edit(int $id): void
     {
         try {
-            $item = $this->getById->execute(MenuRestauranteId::fromInt($id));
+            $item = $this->getById->execute(new GetMenuRestauranteByIdQuery($id));
             $this->view->render('menus/edit', [
                 'item' => $this->mapper->toResponse($item),
             ]);

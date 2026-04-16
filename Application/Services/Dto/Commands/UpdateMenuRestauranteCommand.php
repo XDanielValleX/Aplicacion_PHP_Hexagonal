@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Commands;
+namespace App\Application\Services\Dto\Commands;
 
-final class CreateMenuRestauranteCommand
+final class UpdateMenuRestauranteCommand
 {
     public function __construct(
+        public readonly int $id,
         public readonly string $nombrePlato,
         public readonly string $restaurante,
         public readonly string $precio,

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Application\Commands\UpdateMenuRestauranteCommand;
+use App\Application\Ports\In\UpdateMenuRestauranteUseCase;
 use App\Application\Ports\Out\MenuRestauranteRepositoryPort;
+use App\Application\Services\Dto\Commands\UpdateMenuRestauranteCommand;
+use App\Application\Services\Mappers\MenuRestauranteApplicationMapper;
 use App\Domain\Exceptions\DomainException;
 use App\Domain\Models\MenuRestauranteModel;
-use App\Domain\ValueObjects\MenuRestauranteId;
 
-final class UpdateMenuRestauranteService
+final class UpdateMenuRestauranteService implements UpdateMenuRestauranteUseCase
 {
     public function __construct(
         private readonly MenuRestauranteRepositoryPort $menus,
@@ -19,25 +20,14 @@ final class UpdateMenuRestauranteService
 
     public function execute(UpdateMenuRestauranteCommand $command): MenuRestauranteModel
     {
-        $id = MenuRestauranteId::fromInt($command->id);
+        $id = MenuRestauranteApplicationMapper::fromUpdateCommandToMenuId($command);
+
         $existing = $this->menus->findById($id);
         if ($existing === null) {
             throw new DomainException('Registro no encontrado.');
         }
 
-        $updated = $existing->update(
-            $command->nombrePlato,
-            $command->restaurante,
-            $command->precio,
-            $command->cantidad,
-            $command->duracion,
-            $command->descripcion,
-            $command->cliente,
-            $command->mesero,
-            $command->mesa,
-            $command->comentarios,
-            $command->evaluacion,
-        );
+        $updated = MenuRestauranteApplicationMapper::fromUpdateCommandToUpdatedModel($command, $existing);
 
         return $this->menus->update($updated);
     }
