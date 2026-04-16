@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Entrypoints\Web\Controllers;
 
-use App\Application\Commands\ForgotPasswordCommand;
-use App\Application\Commands\LoginCommand;
-use App\Application\Services\ForgotPasswordService;
-use App\Application\Services\LoginService;
+use App\Application\Ports\In\ForgotPasswordUseCase;
+use App\Application\Ports\In\LoginUseCase;
+use App\Application\Services\Dto\Commands\ForgotPasswordCommand;
+use App\Application\Services\Dto\Commands\LoginCommand;
 use App\Domain\Exceptions\DomainException;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\ForgotPasswordRequest;
 use App\Infrastructure\Entrypoints\Web\Controllers\Dto\LoginWebRequest;
@@ -19,8 +19,8 @@ final class AuthController
 {
     public function __construct(
         private readonly View $view,
-        private readonly LoginService $login,
-        private readonly ForgotPasswordService $forgotPassword,
+        private readonly LoginUseCase $login,
+        private readonly ForgotPasswordUseCase $forgotPassword,
     ) {
     }
 
