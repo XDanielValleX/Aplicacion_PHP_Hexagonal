@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\ValueObjects;
 
-use App\Domain\Exceptions\DomainException;
+use App\Domain\Exceptions\InvalidUserIdException;
 
 final class UserId
 {
@@ -16,7 +16,7 @@ final class UserId
     public static function fromInt(int $value): self
     {
         if ($value <= 0) {
-            throw new DomainException('Id de usuario inválido.');
+            throw InvalidUserIdException::becauseValueIsInvalid($value);
         }
 
         return new self($value);
@@ -30,5 +30,10 @@ final class UserId
     public function equals(self $other): bool
     {
         return $this->value === $other->value;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->value;
     }
 }

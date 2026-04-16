@@ -17,12 +17,16 @@ final class UserEmail
     {
         $value = strtolower(trim($value));
 
-        if ($value === '' || !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            throw new InvalidEmailException('Email inválido.');
+        if ($value === '') {
+            throw InvalidEmailException::becauseValueIsEmpty();
+        }
+
+        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            throw InvalidEmailException::becauseFormatIsInvalid($value);
         }
 
         if (strlen($value) > 190) {
-            throw new InvalidEmailException('Email demasiado largo.');
+            throw InvalidEmailException::becauseValueIsTooLong(190);
         }
 
         return new self($value);
@@ -36,5 +40,10 @@ final class UserEmail
     public function equals(self $other): bool
     {
         return $this->value === $other->value;
+    }
+
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

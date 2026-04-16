@@ -16,21 +16,21 @@ final class UserPassword
     public static function fromPlainText(string $plain): self
     {
         if ($plain === '') {
-            throw new InvalidPasswordException('La contraseña es obligatoria.');
+            throw InvalidPasswordException::becauseValueIsEmpty();
         }
 
         // bcrypt only uses the first 72 bytes
         if (strlen($plain) < 8) {
-            throw new InvalidPasswordException('La contraseña debe tener al menos 8 caracteres.');
+            throw InvalidPasswordException::becauseLengthIsTooShort(8);
         }
 
         if (strlen($plain) > 72) {
-            throw new InvalidPasswordException('La contraseña es demasiado larga.');
+            throw InvalidPasswordException::becauseValueIsTooLong(72);
         }
 
         $hash = password_hash($plain, PASSWORD_BCRYPT);
         if ($hash === false) {
-            throw new InvalidPasswordException('No se pudo generar el hash de la contraseña.');
+            throw InvalidPasswordException::becauseHashCouldNotBeGenerated();
         }
 
         return new self($hash);
@@ -40,7 +40,7 @@ final class UserPassword
     {
         $hash = trim($hash);
         if ($hash === '') {
-            throw new InvalidPasswordException('Hash de contraseña inválido.');
+            throw InvalidPasswordException::becauseHashIsInvalid();
         }
 
         return new self($hash);
@@ -54,5 +54,10 @@ final class UserPassword
     public function hash(): string
     {
         return $this->hash;
+    }
+
+    public function equals(self $other): bool
+    {
+        return hash_equals($this->hash, $other->hash);
     }
 }
