@@ -1,39 +1,35 @@
 <?php
 
-declare(strict_types=1);
+require_once __DIR__ . '/../Exceptions/InvalidUserIdException.php';
 
-namespace App\Domain\ValueObjects;
-
-use App\Domain\Exceptions\InvalidUserIdException;
-
-final class UserId
+class UserId
 {
-    private function __construct(
-        private readonly int $value,
-    ) {
-    }
+    private $value;
 
-    public static function fromInt(int $value): self
+    public function __construct($value)
     {
-        if ($value <= 0) {
-            throw InvalidUserIdException::becauseValueIsInvalid($value);
+        $normalized = trim((string) $value);
+
+        if($normalized === ''){
+            throw InvalidUserIdException::becauseValueIsEmpty();
         }
 
-        return new self($value);
+        $this->value = $normalized;
     }
 
-    public function value(): int
-    {
+    public function value() {
         return $this->value;
     }
 
-    public function equals(self $other): bool
+    public function equals(UserId $other)
     {
-        return $this->value === $other->value;
+        return $this->value === $other-> value();
     }
 
-    public function __toString(): string
+    public function __toString()
     {
-        return (string) $this->value;
+        return $this-> value;
     }
 }
+
+?>

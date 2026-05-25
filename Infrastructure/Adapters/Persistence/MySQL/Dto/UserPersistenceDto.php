@@ -1,31 +1,38 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types=1);   // corregido: era strics_types
 
-namespace App\Infrastructure\Adapters\Persistence\MySQL\Dto;
+namespace Infrastructure\Adapters\Persistence\MySql\Dto;
 
 final class UserPersistenceDto
 {
+    private string $id;
+    private string $name;
+    private string $email;
+    private string $password;
+    private string $role;
+    private string $status;
+
     public function __construct(
-        public readonly string $name,
-        public readonly string $email,
-        public readonly string $passwordHash,
-        public readonly int $roleId,
-        public readonly string $status,
+        string $id,
+        string $name,
+        string $email,
+        string $password,
+        string $role,
+        string $status
     ) {
+        $this->id       = trim($id);
+        $this->name     = trim($name);
+        $this->email    = trim($email);
+        $this->password = trim($password);
+        $this->role     = trim($role);
+        $this->status   = trim($status);
     }
 
-    /**
-     * @return array{name:string,email:string,password_hash:string,role_id:int,status:string}
-     */
-    public function toRow(): array
-    {
-        return [
-            'name' => $this->name,
-            'email' => $this->email,
-            'password_hash' => $this->passwordHash,
-            'role_id' => $this->roleId,
-            'status' => $this->status,
-        ];
-    }
+    public function id(): string       { return $this->id; }
+    public function name(): string     { return $this->name; }
+    public function email(): string    { return $this->email; }
+    public function password(): string { return $this->password; }
+    public function role(): string     { return $this->role; }
+    public function status(): string   { return $this->status; }
 }

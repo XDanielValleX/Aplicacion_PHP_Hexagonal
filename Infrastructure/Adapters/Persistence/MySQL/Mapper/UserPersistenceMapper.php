@@ -2,66 +2,60 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Adapters\Persistence\MySQL\Mapper;
+namespace Infrastructure\Adapters\Persistence\MySql\Mapper;
 
-use App\Domain\Enums\UserStatus;
-use App\Domain\Models\UserModel;
-use App\Domain\ValueObjects\UserEmail;
-use App\Domain\ValueObjects\UserId;
-use App\Domain\ValueObjects\UserName;
-use App\Domain\ValueObjects\UserPassword;
-use App\Domain\ValueObjects\UserRoleId;
-use App\Infrastructure\Adapters\Persistence\MySQL\Dto\UserPersistenceDto;
-use App\Infrastructure\Adapters\Persistence\MySQL\Entity\UserEntity;
+use Infrastructure\Adapters\Persistence\MySql\Entity\UserEntity;
+
+// Domain classes cargadas vía require_once desde el repositorio
+// (se usan las clases globales porque no tienen namespace propio)
 
 final class UserPersistenceMapper
 {
     /**
-     * @param array{
-     *   id:mixed,
-     *   name:mixed,
-     *   email:mixed,
-     *   password_hash:mixed,
-     *   role_id:mixed,
-     *   status:mixed,
-     *   created_at:mixed,
-     *   updated_at:mixed
-     * } $row
+     * Convierte una fila de BD (array asociativo) en UserEntity.
      */
-    public static function toEntity(array $row): UserEntity
+    public static function fromRowToEntity(array $row): UserEntity
     {
         return new UserEntity(
-            (int) $row['id'],
-            (string) $row['name'],
-            (string) $row['email'],
-            (string) $row['password_hash'],
-            (int) $row['role_id'],
-            (string) $row['status'],
-            (string) $row['created_at'],
-            (string) $row['updated_at'],
+            $row['id'],
+            $row['name'],
+            $row['email'],
+            $row['password'],
+            $row['role'],
+            $row['status'],
+            $row['created_at'] ?? null,
+            $row['updated_at'] ?? null
         );
     }
 
-    public static function toModel(UserEntity $entity): UserModel
+    /**
+     * Convierte UserEntity en UserModel del dominio.
+     * Requiere que las clases del dominio estén cargadas.
+     */
+    public static function fromEntityToModel(UserEntity $entity): \UserModel
     {
-        return new UserModel(
-            UserId::fromInt($entity->id),
-            UserName::fromString($entity->name),
-            UserEmail::fromString($entity->email),
-            UserPassword::fromHash($entity->passwordHash),
-            UserRoleId::fromInt($entity->roleId),
-            UserStatus::fromString($entity->status),
+        return new \UserModel(
+            new \UserId($entity->id()),
+            new \UserName($entity->name()),
+            new \UserEmail($entity->email()),
+            \UserPassword::fromHash($entity->password()),
+            $entity->role(),
+            $entity->status()
         );
     }
 
-    public static function toDto(UserModel $user): UserPersistenceDto
+    /**
+     * Convierte UserModel en array para persistir en BD.
+     */
+    public static function fromModelToRow(\UserModel $user): array
     {
-        return new UserPersistenceDto(
-            $user->name()->value(),
-            $user->email()->value(),
-            $user->password()->hash(),
-            $user->roleId()->value(),
-            $user->status()->value,
-        );
+        return [
+            'id'       => $user->id()->value(),
+            'name'     => $user->name()->value(),
+            'email'    => $user->email()->value(),
+            'password' => $user->password()->value(),
+            'role'     => $user->role(),
+            'status'   => $user->status(),
+        ];
     }
 }

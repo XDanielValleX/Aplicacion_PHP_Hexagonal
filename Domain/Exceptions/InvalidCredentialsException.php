@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Exceptions;
-
-final class InvalidCredentialsException extends DomainException
+class InvalidCredentialsException extends \RuntimeException
 {
     public static function becauseCredentialsAreInvalid(): self
     {
-        return new self('Credenciales inválidas.');
+        return new self('Las credenciales son inválidas.');
+    }
+
+    public static function becauseUserIsNotActive(): self
+    {
+        return new self('El usuario no está activo.');
     }
 }
