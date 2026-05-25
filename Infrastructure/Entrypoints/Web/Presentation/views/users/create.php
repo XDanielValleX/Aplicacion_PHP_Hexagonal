@@ -6,6 +6,7 @@
 
 <form method="post" action="<?= htmlspecialchars($basePath, ENT_QUOTES, 'UTF-8') ?>/index.php?route=users.store">
     <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrfToken ?? '', ENT_QUOTES, 'UTF-8') ?>">
+    <input type="hidden" name="role_id" value="1">
 
     <p>
         <label>Nombre</label><br>
@@ -20,11 +21,6 @@
     <p>
         <label>Contraseña</label><br>
         <input name="password" type="password" required>
-    </p>
-
-    <p>
-        <label>Rol (id)</label><br>
-        <input name="role_id" type="number" min="1" value="<?= htmlspecialchars((string) ($old['role_id'] ?? '1'), ENT_QUOTES, 'UTF-8') ?>" required>
     </p>
 
     <p>

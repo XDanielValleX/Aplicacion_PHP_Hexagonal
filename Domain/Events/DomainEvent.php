@@ -1,28 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
+namespace App\Domain\Events;
+
 abstract class DomainEvent
 {
-    private $eventName;
-    private $occurredOn;
+    private string $eventName;
+    private string $occurredOn;
 
-    public function __construct($eventName)
+    public function __construct(string $eventName, ?string $occurredOn = null)
     {
         $this->eventName = $eventName;
-        $this->occurredOn = date('Y-m-d H:i:s');
+        $this->occurredOn = $occurredOn ?? date('c');
     }
 
-    public function eventName()
+    public function eventName(): string
     {
         return $this->eventName;
     }
 
-    public function occurredOn()
+    public function occurredOn(): string
     {
         return $this->occurredOn;
     }
 
-    abstract public function payload();
-
+    /**
+     * @return array<string, mixed>
+     */
+    abstract public function payload(): array;
 }
-
-?>

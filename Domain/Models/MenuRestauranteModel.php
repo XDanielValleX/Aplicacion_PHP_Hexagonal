@@ -168,7 +168,8 @@ final class MenuRestauranteModel
             throw new DomainException($field . ' es obligatorio.');
         }
 
-        if (mb_strlen($value) > $maxLen) {
+        $len = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
+        if ($len > $maxLen) {
             throw new DomainException($field . ' es demasiado largo.');
         }
     }

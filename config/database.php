@@ -1,9 +1,12 @@
 <?php
+
+declare(strict_types=1);
+
 return [
-    'host'     => 'localhost',
-    'port'     => 3306,
-    'database' => 'app_php',  
-    'username' => 'root',           
-    'password' => '',        
-    'charset'  => 'utf8mb4',
+    'host' => getenv('DB_HOST') ?: '127.0.0.1',
+    'port' => (int) (getenv('DB_PORT') ?: 3306),
+    'database' => getenv('DB_NAME') ?: 'actividad1',
+    'username' => getenv('DB_USER') ?: 'root',
+    'password' => getenv('DB_PASS') ?: 'root',
+    'charset' => 'utf8mb4',
 ];

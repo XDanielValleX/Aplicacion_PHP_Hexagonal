@@ -1,14 +1,15 @@
 {
-    "name": "mi-app/aplication-php",
-    "description": "Aplicación PHP hexagonal para gestión de usuarios.",
-    "type": "project",
-    "require": {
-        "php": ">=8.0",
-        "ext-pdo": "*"
-    },
-    "autoload": {
-        "psr-4": {
-            "Infrastructure\\": "Infrastructure/"
-        }
+  "name": "xdanielvallex/actividad1-menu-restaurante",
+  "type": "project",
+  "require": {
+    "php": "^8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\Common\\": "Common/",
+      "App\\Domain\\": "Domain/",
+      "App\\Application\\": "Application/",
+      "App\\Infrastructure\\": "Infrastructure/"
     }
+  }
 }
