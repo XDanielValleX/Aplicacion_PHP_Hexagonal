@@ -1,13 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Exceptions;
-
-final class InvalidUserIdException extends DomainException
+class InvalidUserIdException extends InvalidArgumentException
 {
-    public static function becauseValueIsInvalid(int $value): self
+    public static function becauseValueIsEmpty()
     {
-        return new self('Id de usuario inválido.');
+        return new self ('el id del usuario no puede estar vacio');
     }
 }
+
+?>

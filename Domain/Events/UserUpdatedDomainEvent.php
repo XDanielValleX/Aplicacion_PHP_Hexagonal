@@ -1,32 +1,33 @@
 <?php
 
-declare(strict_types=1);
+require_once __DIR__ . '/DomainEvent.php';
+require_once __DIR__ . '/../Models/UserModel.php';
 
-namespace App\Domain\Events;
-
-use App\Domain\Models\UserModel;
-
-final class UserUpdatedDomainEvent extends DomainEvent
+class UserUpdatedDomainEvent extends DomainEvent
 {
-    public function __construct(
-        private readonly UserModel $user,
-    ) {
+    private $user;
+
+    public function __construct(UserModel $user)
+    {
         parent::__construct('user.updated');
+        $this->user = $user;
     }
 
-    public function user(): UserModel
+    public function user()
     {
-        return $this->user;
+        return $this-> user;
     }
 
-    public function payload(): array
+    public function payload()
     {
-        return [
-            'id' => $this->user->id()?->value(),
+        return array(
+            'id' => $this->user->id()->value(),
             'name' => $this->user->name()->value(),
             'email' => $this->user->email()->value(),
-            'roleId' => $this->user->roleId()->value(),
-            'status' => $this->user->status()->value,
-        ];
+            'role' => $this->user->role(),
+            'status' => $this->user->status()
+        );
     }
 }
+
+?>

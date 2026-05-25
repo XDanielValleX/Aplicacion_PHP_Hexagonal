@@ -1,13 +1,10 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Exceptions;
-
-final class UserAlreadyExistsException extends DomainException
+class UserAlreadyExistsException extends InvalidArgumentException
 {
-    public static function becauseEmailAlreadyExists(): self
+    public static function becauseEmailAlreadyExist($email)
     {
-        return new self('Ya existe un usuario con ese email.');
+        return new self('ya existe un usuario con el correo: ' . $email);
     }
 }
+?>

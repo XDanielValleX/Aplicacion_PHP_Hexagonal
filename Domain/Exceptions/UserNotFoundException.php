@@ -1,13 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Exceptions;
-
-final class UserNotFoundException extends DomainException
+class UserNotFoundException extends InvalidArgumentException
 {
-    public static function becauseIdWasNotFound(): self
+    public static function becauseIdWasNotFound($id)
     {
-        return new self('Usuario no encontrado.');
+        return new self('No se encontro usuario con el id: ' . $id);
     }
 }
+
+?>

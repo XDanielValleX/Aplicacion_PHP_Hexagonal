@@ -1,49 +1,42 @@
 <?php
 
-declare(strict_types=1);
+require_once __DIR__ . '/../Exceptions/InvalidUserEmailException.php';
 
-namespace App\Domain\ValueObjects;
-
-use App\Domain\Exceptions\InvalidEmailException;
-
-final class UserEmail
+class UserEmail
 {
-    private function __construct(
-        private readonly string $value,
-    ) {
-    }
+    private $value;
 
-    public static function fromString(string $value): self
+    public function __construct($value)
     {
-        $value = strtolower(trim($value));
+        $normalized = trim((string) $value);
 
-        if ($value === '') {
-            throw InvalidEmailException::becauseValueIsEmpty();
+        if ($normalized === ''){
+            throw InvalidUserEmailException::becauseValueIsEmpty();
         }
 
-        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            throw InvalidEmailException::becauseFormatIsInvalid($value);
+        if (!filter_var($normalized, FILTER_VALIDATE_EMAIL)){
+            throw InvalidUserEmailException::becauseFormatIsInvalid($normalized);
         }
 
-        if (strlen($value) > 190) {
-            throw InvalidEmailException::becauseValueIsTooLong(190);
-        }
+        $this->value = strtolower($normalized);
 
-        return new self($value);
     }
 
-    public function value(): string
+    public function value()
     {
-        return $this->value;
+        return $this-> value;
     }
 
-    public function equals(self $other): bool
+    public function equals(UserEmail $other)
     {
-        return $this->value === $other->value;
+        return $this-> value === $other-> value(); 
     }
 
-    public function __toString(): string
+    public function __toString()
     {
-        return $this->value;
+        return $this-> value;
     }
+
 }
+
+?>

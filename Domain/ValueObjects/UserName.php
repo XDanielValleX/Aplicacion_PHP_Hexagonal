@@ -1,45 +1,40 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\ValueObjects;
-
-use App\Domain\Exceptions\InvalidNameException;
-
-final class UserName
+require_once __DIR__ . '/../Exceptions/InvalidUserNameException.php';
+class UserName
 {
-    private function __construct(
-        private readonly string $value,
-    ) {
-    }
+    private $value;
 
-    public static function fromString(string $value): self
+    public function __construct($value)
     {
-        $value = trim($value);
+        $normalized = trim((string) $value);
 
-        if ($value === '') {
-            throw InvalidNameException::becauseValueIsEmpty();
+        if ($normalized === ''){
+            throw InvalidUserNameException::becauseValueIsEmpty();
         }
 
-        if (mb_strlen($value) > 120) {
-            throw InvalidNameException::becauseValueIsTooLong(120);
+        if (mb_strlen($normalized) < 3){
+            throw InvalidUserNameException::becauseLenghtIsTooShort(3);
         }
 
-        return new self($value);
+        $this->value = $normalized;
     }
 
-    public function value(): string
+    public function value()
     {
         return $this->value;
     }
 
-    public function equals(self $other): bool
+    public function equals(UserName $other)
     {
-        return $this->value === $other->value;
+        return $this-> value === $other->value();
+
     }
 
-    public function __toString(): string
+    public function __toString()
     {
-        return $this->value;
+        return $this-> value;
     }
+
 }
+?>

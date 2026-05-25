@@ -1,28 +1,27 @@
 <?php
 
-declare(strict_types=1);
+require_once __DIR__ . '/DomainEvent.php';
+require_once __DIR__ . '/../ValueObjects/UserId.php';
 
-namespace App\Domain\Events;
-
-use App\Domain\ValueObjects\UserId;
-
-final class UserDeletedDomainEvent extends DomainEvent
+class UserDeletedDomainEvent extends DomainEvent
 {
-    public function __construct(
-        private readonly UserId $userId,
-    ) {
+    private $userId;
+
+    public function __construct(UserId $userId)
+    {
         parent::__construct('user.deleted');
+        $this->userId = $userId;
     }
 
-    public function userId(): UserId
+    public function userId()
     {
         return $this->userId;
     }
 
-    public function payload(): array
+    public function payload()
     {
-        return [
-            'id' => $this->userId->value(),
-        ];
+        return array('id' => $this->userId->value());
     }
 }
+
+?>
